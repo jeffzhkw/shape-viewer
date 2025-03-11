@@ -61,10 +61,6 @@ body {
   overflow: hidden;
 }
 
-.shape {
-  position: absolute;
-}
-
 .file-input {
   display: none;
 }
