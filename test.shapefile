@@ -1,0 +1,28 @@
+Rectangle, 0, 0, 0, 50, 50, ff0000
+Rectangle, 70, 70, 1, 100, 200, 00ff00
+
+
+// my-shapes.shapefile
+// Format: ShapeType, x, y, zIndex, [shape-specific-parameters], color;
+// For Rectangle: ShapeType, x, y, zIndex, width, height, color;
+// For Triangle: ShapeType, x, y, zIndex, size, color;
+
+// Basic shapes
+Rectangle, 20, 20, 0, 100, 50, ff0000; // Red rectangle at (20,20), 100px × 50px
+Rectangle, 150, 50, 1, 80, 80, 00ff00; // Green square at (150,50), 80px × 80px
+Triangle, 60, 180, 2, 70, 0000ff; // Blue triangle at (60,180), 70px height
+
+// Overlapping shapes to demonstrate z-index
+Rectangle, 250, 150, 3, 120, 60, ffff00; // Yellow rectangle
+Rectangle, 290, 180, 2, 100, 80, ff00ff; // Purple rectangle (behind yellow because of lower z-index)
+
+// Small shapes arranged in a pattern
+Rectangle, 450, 50, 0, 30, 30, ffa500; // Orange square
+Rectangle, 450, 100, 0, 30, 30, ffa500; // Orange square
+Rectangle, 450, 150, 0, 30, 30, ffa500; // Orange square
+Rectangle, 450, 200, 0, 30, 30, ffa500; // Orange square
+
+// Triangle examples
+Triangle, 550, 50, 4, 40, 800080; // Purple triangle
+Triangle, 550, 120, 4, 60, 008080; // Teal triangle
+Triangle, 550, 210, 4, 80, 808000; // Olive triangle
