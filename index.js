@@ -47,7 +47,6 @@ class ShapeRenderer {
 
     onWindowResize() {
         // Update viewport dimensions
-
         const rect = this.container.getBoundingClientRect();
         this.viewportWidth = rect.width;
         this.viewportHeight = rect.height;
@@ -89,6 +88,8 @@ class ShapeRenderer {
                 this.renderRectangle(shape);
             } else if (shape.type === "Triangle") {
                 this.renderTriangle(shape);
+            } else if (shape.type === "Polygon") {
+                this.renderPolygon(shape);
             }
         });
     }
@@ -147,6 +148,59 @@ class ShapeRenderer {
         // Add to scene and store reference
         this.scene.add(mesh);
         this.meshes.push(mesh);
+    }
+
+    renderPolygon(shapeData) {
+        const { x, y, points, color, zIndex } = shapeData;
+
+        // Create a Three.js Shape
+        const shape = new THREE.Shape();
+
+        // Start from the first point
+        if (points.length < 3) {
+            alert("Polygon must have at least 3 points");
+            return;
+        }
+
+        // start point
+        shape.moveTo(points[0].x, points[0].y);
+
+        // Draw line to sunsequent points
+        for (let i = 1; i < points.length; i++) {
+            shape.lineTo(points[i].x, points[i].y);
+        }
+
+        // Close the shape by connecting back to the first point
+        shape.closePath();
+
+        // Create geometry from shape
+        const geometry = new THREE.ShapeGeometry(shape);
+
+        // Create material
+        const material = new THREE.MeshBasicMaterial({
+            color: parseInt("0x" + color, 16),
+            side: THREE.DoubleSide
+        });
+
+        // Create mesh
+        const mesh = new THREE.Mesh(geometry, material);
+
+        // Position the mesh
+        // For polygons we need to handle the position using the origin (x,y)
+        // and transform the entire mesh to match the viewport coordinates
+        mesh.position.set(x, this.viewportHeight - y, zIndex);
+
+        // Flip the y-coordinates in the geometry
+        for (let i = 0; i < geometry.attributes.position.array.length; i += 3) {
+            geometry.attributes.position.array[i + 1] *= -1;
+        }
+
+        geometry.attributes.position.needsUpdate = true;
+
+        // Add to scene and store reference
+        this.scene.add(mesh);
+        this.meshes.push(mesh);
+
     }
 
     update() {
@@ -211,6 +265,24 @@ function parseShapeFile(fileContent) {
                     y,
                     zIndex,
                     size,
+                    color,
+                });
+            } else if (type === "Polygon" && parts.length >= 5) {
+                // Parse polygon points format: "x1:y1|x2:y2|x3:y3|..."
+                const pointsString = parts[4];
+                const pointPairs = pointsString.split("|");
+
+                const points = pointPairs.map(pair => {
+                    const [pointX, pointY] = pair.split(":").map(coord => parseInt(coord));
+                    return { x: pointX, y: pointY };
+                });
+
+                shapes.push({
+                    type,
+                    x,
+                    y,
+                    zIndex,
+                    points,
                     color,
                 });
             }

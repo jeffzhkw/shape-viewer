@@ -6,6 +6,7 @@ Rectangle, 70, 70, 1, 100, 200, 00ff00
 // Format: ShapeType, x, y, zIndex, [shape-specific-parameters], color;
 // For Rectangle: ShapeType, x, y, zIndex, width, height, color;
 // For Triangle: ShapeType, x, y, zIndex, size, color;
+// For Polygon: ShapeType, x, y, zIndex, point_1_x:point_1_y|point_2_x:point_2_y|...|point_N_x:point_N_y, color;
 
 // Basic shapes
 Rectangle, 20, 20, 0, 100, 50, ff0000; // Red rectangle at (20,20), 100px × 50px
@@ -26,3 +27,8 @@ Rectangle, 450, 200, 0, 30, 30, ffa500; // Orange square
 Triangle, 550, 50, 4, 40, 800080; // Purple triangle
 Triangle, 550, 120, 4, 60, 008080; // Teal triangle
 Triangle, 550, 210, 4, 80, 808000; // Olive triangle
+
+
+Polygon, 100, 50, 1, 0:0|100:50|200:0, 0000ff;
+Polygon, 300, 150, 3, 50:0|60:40|100:20|70:60|50:70|10:100|30:60|0:50|20:20, 800080;
+Polygon, 400, 50, 4,  50:0|60:40|0:50|20:20|0:50|60:30|0:70, ffff00;
