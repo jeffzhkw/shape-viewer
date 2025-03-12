@@ -59,6 +59,16 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  cursor: default;
+}
+
+/* Add cursor styles to indicate draggable elements */
+.shape-viewport canvas {
+  cursor: grab;
+}
+
+.shape-viewport canvas:active {
+  cursor: grabbing;
 }
 
 .file-input {

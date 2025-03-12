@@ -9,12 +9,25 @@ class ShapeRenderer {
         this.container = container;
         this.shapes = [];
         this.meshes = [];
+        this.isDragging = false;
+        this.selectedMesh = null;
+        this.selectedShapeIndex = -1;
+        this.dragOffset = { x: 0, y: 0 };
 
         // Initialize Three.js components
         this.initThreeJS();
 
         // Handle window resize
         window.addEventListener('resize', this.onWindowResize.bind(this));
+
+        // Initialize raycaster for shape selection
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+
+        // Add mouse event listeners
+        this.container.addEventListener('mousedown', this.onMouseDown.bind(this));
+        document.addEventListener('mousemove', this.onMouseMove.bind(this));
+        document.addEventListener('mouseup', this.onMouseUp.bind(this));
 
         this.update();
     }
@@ -43,7 +56,6 @@ class ShapeRenderer {
         this.renderer.setSize(this.viewportWidth, this.viewportHeight);
         this.container.appendChild(this.renderer.domElement);
     }
-
 
     onWindowResize() {
         // Update viewport dimensions
@@ -165,7 +177,7 @@ class ShapeRenderer {
         // start point
         shape.moveTo(points[0].x, points[0].y);
 
-        // Draw line to sunsequent points
+        // Draw line to subsequent points
         for (let i = 1; i < points.length; i++) {
             shape.lineTo(points[i].x, points[i].y);
         }
@@ -200,7 +212,109 @@ class ShapeRenderer {
         // Add to scene and store reference
         this.scene.add(mesh);
         this.meshes.push(mesh);
+    }
 
+    // Convert viewport coordinates to normalized device coordinates
+    getMouseNDC(event) {
+        const rect = this.container.getBoundingClientRect();
+        return {
+            x: ((event.clientX - rect.left) / this.viewportWidth) * 2 - 1,
+            y: -((event.clientY - rect.top) / this.viewportHeight) * 2 + 1,
+        };
+    }
+
+    // Convert screen coordinates to world coordinates (for dragging)
+    getMouseWorldCoordinates(event) {
+        const rect = this.container.getBoundingClientRect();
+        // Convert viewport coordinates to Three.js coordinates (flip Y axis)
+        return {
+            x: event.clientX - rect.left,
+            y: this.viewportHeight - (event.clientY - rect.top), // Flip Y for Three.js
+        };
+    }
+
+    // Find the shape under the mouse cursor
+    findIntersectedShape(event) {
+        const mouseNDC = this.getMouseNDC(event);
+        this.raycaster.setFromCamera(
+            new THREE.Vector2(mouseNDC.x, mouseNDC.y),
+            this.camera
+        );
+
+        const intersects = this.raycaster.intersectObjects(this.meshes);
+        if (intersects.length > 0) {
+            const intersectedMesh = intersects[0].object;
+            const meshIndex = this.meshes.indexOf(intersectedMesh);
+            return { mesh: intersectedMesh, index: meshIndex };
+        }
+
+        return { mesh: null, index: -1 };
+    }
+
+    onMouseDown(event) {
+        if (event.button !== 0) return; // Only handle left mouse button
+
+        const { mesh, index } = this.findIntersectedShape(event);
+
+        if (mesh) {
+            // Capture the shape and prepare for dragging
+            this.isDragging = true;
+            this.selectedMesh = mesh;
+            this.selectedShapeIndex = index;
+
+            // Calculate offset to prevent shape jumping to cursor position
+            const mousePos = this.getMouseWorldCoordinates(event);
+
+            // The same offset calculation works for all shape types
+            // because we're using the mesh's position directly
+            this.dragOffset = {
+                x: mousePos.x - mesh.position.x,
+                y: mousePos.y - mesh.position.y
+            };
+        }
+    }
+
+    onMouseMove(event) {
+        if (!this.isDragging || this.selectedShapeIndex === -1) return;
+
+        // Get current mouse position
+        const mousePos = this.getMouseWorldCoordinates(event);
+
+        // Calculate new position adjusting for the initial offset
+        const newX = mousePos.x - this.dragOffset.x;
+        const newY = mousePos.y - this.dragOffset.y;
+
+        // Move the mesh
+        this.selectedMesh.position.x = newX;
+        this.selectedMesh.position.y = newY;
+
+        // Update the shape data
+        const shape = this.shapes[this.selectedShapeIndex];
+
+        if (shape.type === "Rectangle") {
+            // For rectangles, we need to update based on center position
+            const { width, height } = shape;
+            // Convert from Three.js position (center of rectangle) to viewport coordinates (top-left)
+            shape.x = newX - width / 2;
+            shape.y = this.viewportHeight - newY - height / 2;
+        }
+        else if (shape.type === "Triangle") {
+            // For triangles - top vertex is at (x + size/2, y)
+            shape.x = newX - shape.size / 2;
+            shape.y = this.viewportHeight - newY;
+        }
+        else if (shape.type === "Polygon") {
+            // For polygons - origin is at (x, y)
+            shape.x = newX;
+            shape.y = this.viewportHeight - newY;
+        }
+    }
+
+    onMouseUp() {
+        // Reset dragging state
+        this.isDragging = false;
+        this.selectedMesh = null;
+        this.selectedShapeIndex = -1;
     }
 
     update() {
