@@ -529,48 +529,81 @@ shapeType.addEventListener("change", () => {
 shapeForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    // Get common shape properties
+
     const type = shapeType.value;
-    const x = parseInt(document.getElementById("shapeX").value);
-    const y = parseInt(document.getElementById("shapeY").value);
-    const zIndex = parseInt(document.getElementById("shapeZIndex").value);
-    const color = document.getElementById("shapeColor").value;
+    const xVal = document.getElementById("shapeX").value;
+    const yVal = document.getElementById("shapeY").value;
+    const zIndexVal = document.getElementById("shapeZIndex").value;
+    const colorVal = document.getElementById("shapeColor").value;
+
+
+    if (!xVal || !yVal || !zIndexVal) {
+        alert("Please enter X position, Y position, and Z-Index");
+        return;
+    }
+    if (!colorVal || !/^[0-9A-Fa-f]{6}$/.test(colorVal)) {
+        alert("Please enter a valid 6-digit hex color code without the # symbol");
+        return;
+    }
+
+    // Parse validated values
+    const x = parseInt(xVal);
+    const y = parseInt(yVal);
+    const zIndex = parseInt(zIndexVal);
+    const color = colorVal;
 
     let newShape;
 
-    // Create shape object based on type
+    // Validate shape-specific fields and create shape object
     if (type === "Rectangle") {
-        const width = parseInt(document.getElementById("rectWidth").value);
-        const height = parseInt(document.getElementById("rectHeight").value);
+        const widthVal = document.getElementById("rectWidth").value;
+        const heightVal = document.getElementById("rectHeight").value;
 
-        newShape = {
-            type,
-            x,
-            y,
-            zIndex,
-            width,
-            height,
-            color
-        };
-    } else if (type === "Triangle") {
-        const size = parseInt(document.getElementById("triangleSize").value);
+        if (!widthVal || !heightVal) {
+            alert("Please enter width and height for the rectangle");
+            return;
+        }
 
-        newShape = {
-            type,
-            x,
-            y,
-            zIndex,
-            size,
-            color
-        };
-    } else if (type === "Polygon") {
+        const width = parseInt(widthVal);
+        const height = parseInt(heightVal);
+
+        if (width <= 0 || height <= 0) {
+            alert("Width and height must be greater than zero");
+            return;
+        }
+
+        newShape = { type, x, y, zIndex, width, height, color };
+    }
+    else if (type === "Triangle") {
+        const sizeVal = document.getElementById("triangleSize").value;
+
+        if (!sizeVal) {
+            alert("Please enter size for the triangle");
+            return;
+        }
+
+        const size = parseInt(sizeVal);
+
+        if (size <= 0) {
+            alert("Triangle size must be greater than zero");
+            return;
+        }
+
+        newShape = { type, x, y, zIndex, size, color };
+    }
+    else if (type === "Polygon") {
         const pointsString = document.getElementById("polygonPoints").value;
+
+        if (!pointsString) {
+            alert("Please specify points for the polygon");
+            return;
+        }
 
         // Parse points from format "x1:y1|x2:y2|x3:y3"
         try {
             const pointPairs = pointsString.split("|");
             if (pointPairs.length < 3) {
-                alert("A polygon must have at least 3 points.");
+                alert("A polygon must have at least 3 points");
                 return;
             }
 
@@ -582,24 +615,22 @@ shapeForm.addEventListener("submit", (event) => {
                 return { x: pointX, y: pointY };
             });
 
-            newShape = {
-                type,
-                x,
-                y,
-                zIndex,
-                points,
-                color
-            };
+            newShape = { type, x, y, zIndex, points, color };
         } catch (error) {
-            alert("Invalid polygon points format. Use x1:y1|x2:y2|x3:y3");
+            alert("Invalid polygon points format. Use format x1:y1|x2:y2|x3:y3");
             return;
         }
     }
 
+    // Add the validated shape to the renderer
     renderer.addShape(newShape);
     renderer.render();
+
+    // Close the modal
     shapeModal.style.display = "none";
 
+    // Optional: Clear form for next use
+    shapeForm.reset();
 });
 
 

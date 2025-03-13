@@ -50,28 +50,28 @@
           
           <div class="form-group">
             <label for="shapeX">X Position:</label>
-            <input type="number" id="shapeX" required>
+            <input type="number" id="shapeX">
           </div>
           
           <div class="form-group">
             <label for="shapeY">Y Position:</label>
-            <input type="number" id="shapeY"  required>
+            <input type="number" id="shapeY" >
           </div>
           
           <div class="form-group">
             <label for="shapeZIndex">Z-Index:</label>
-            <input type="number" id="shapeZIndex" required>
+            <input type="number" id="shapeZIndex">
           </div>
           
           <!-- Rectangle specific fields -->
           <div class="shape-specific" id="rectangleFields">
             <div class="form-group">
               <label for="rectWidth">Width:</label>
-              <input type="number" id="rectWidth" min="1" required>
+              <input type="number" id="rectWidth" min="1">
             </div>
             <div class="form-group">
               <label for="rectHeight">Height:</label>
-              <input type="number" id="rectHeight"  min="1" required>
+              <input type="number" id="rectHeight"  min="1">
             </div>
           </div>
           
@@ -79,7 +79,7 @@
           <div class="shape-specific" id="triangleFields" style="display:none;">
             <div class="form-group">
               <label for="triangleSize">Size:</label>
-              <input type="number" id="triangleSize"  min="1" required>
+              <input type="number" id="triangleSize"  min="1">
             </div>
           </div>
           
@@ -87,14 +87,14 @@
           <div class="shape-specific" id="polygonFields" style="display:none;">
             <div class="form-group">
               <label for="polygonPoints">Points (format: x1:y1|x2:y2|x3:y3...):</label>
-              <input type="text" id="polygonPoints" value="0:0|50:50|100:0" required>
+              <input type="text" id="polygonPoints" value="0:0|50:50|100:0">
               <small>Points are relative to shape position (x,y)</small>
             </div>
           </div>
           
           <div class="form-group">
             <label for="shapeColor">Color (hex without #):</label>
-            <input type="text" id="shapeColor" pattern="[0-9A-Fa-f]{6}" required>
+            <input type="text" id="shapeColor" pattern="[0-9A-Fa-f]{6}">
             
           </div>
           
