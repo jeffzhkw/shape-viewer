@@ -144,7 +144,7 @@ class ShapeRenderer {
     }
 
     renderTriangle(shapeData) {
-        const { x, y, size, color, zIndex } = shapeData;
+        const { x, y, width, height, color, zIndex } = shapeData;
 
         // Create triangle geometry
         const geometry = new THREE.BufferGeometry();
@@ -152,9 +152,9 @@ class ShapeRenderer {
         // Define vertices for a triangle with base at the bottom (point up)
         // Flip Y coordinates for WebGL coordinate system
         const vertices = new Float32Array([
-            x + size / 2, this.viewportHeight - y, 0, // Top vertex
-            x, this.viewportHeight - (y + size), 0, // Bottom left
-            x + size, this.viewportHeight - (y + size), 0  // Bottom right
+            x + width / 2, this.viewportHeight - y, 0,             // Top vertex
+            x, this.viewportHeight - (y + height), 0,              // Bottom left
+            x + width, this.viewportHeight - (y + height), 0       // Bottom right
         ]);
 
         // Add vertices to geometry
@@ -313,7 +313,8 @@ class ShapeRenderer {
         }
         else if (shape.type === "Triangle") {
             // For triangles - top vertex is at (x + size/2, y)
-            shape.x = newX - shape.size / 2;
+            const { width } = shape;
+            shape.x = newX - width / 2;
             shape.y = this.viewportHeight - newY;
         }
         else if (shape.type === "Polygon") {
@@ -383,15 +384,17 @@ function parseShapeFile(fileContent) {
                     height,
                     color,
                 });
-            } else if (type === "Triangle" && parts.length >= 5) {
-                const size = parseInt(parts[4]); // Triangle size (height)
+            } else if (type === "Triangle" && parts.length >= 6) {
+                const width = parseInt(parts[4]);
+                const height = parseInt(parts[5]);
 
                 shapes.push({
                     type,
                     x,
                     y,
                     zIndex,
-                    size,
+                    width,
+                    height,
                     color,
                 });
             } else if (type === "Polygon" && parts.length >= 5) {
@@ -448,7 +451,7 @@ function shapesToFileContent(shapes) {
         if (shape.type === "Rectangle") {
             content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${shape.width}, ${shape.height}, ${shape.color};\n`;
         } else if (shape.type === "Triangle") {
-            content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${shape.size}, ${shape.color};\n`;
+            content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${shape.width}, ${shape.height}, ${shape.color};\n`;
         } else if (shape.type === "Polygon") {
             // Convert points array to the format: "x1:y1|x2:y2|x3:y3|..."
             const pointsString = shape.points.map(p => `${p.x}:${p.y}`).join('|');
@@ -575,21 +578,23 @@ shapeForm.addEventListener("submit", (event) => {
         newShape = { type, x, y, zIndex, width, height, color };
     }
     else if (type === "Triangle") {
-        const sizeVal = document.getElementById("triangleSize").value;
+        const widthVal = document.getElementById("triangleWidth").value;
+        const heightVal = document.getElementById("triangleHeight").value;
 
-        if (!sizeVal) {
-            alert("Please enter size for the triangle");
+        if (!widthVal || !heightVal) {
+            alert("Please enter width and height for the triangle");
             return;
         }
 
-        const size = parseInt(sizeVal);
+        const width = parseInt(widthVal);
+        const height = parseInt(heightVal);
 
-        if (size <= 0) {
-            alert("Triangle size must be greater than zero");
+        if (width <= 0 || height <= 0) {
+            alert("Width and height must be greater than zero");
             return;
         }
 
-        newShape = { type, x, y, zIndex, size, color };
+        newShape = { type, x, y, zIndex, width, height, color };
     }
     else if (type === "Polygon") {
         const pointsString = document.getElementById("polygonPoints").value;
