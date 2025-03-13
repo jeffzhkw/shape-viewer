@@ -5,6 +5,18 @@ const leftOpenBtn = document.getElementById("leftOpenBtn");
 const fileInput = document.getElementById("fileInput");
 const saveAsBtn = document.getElementById("saveAsBtn");
 
+// Add Shape Controls
+const addShapeBtn = document.getElementById("addShapeBtn");
+const shapeModal = document.getElementById("shapeModal");
+const cancelShapeBtn = document.getElementById("cancelShapeBtn");
+// Shape Form Fields
+const shapeForm = document.getElementById("shapeForm");
+const shapeType = document.getElementById("shapeType");
+const rectangleFields = document.getElementById("rectangleFields");
+const triangleFields = document.getElementById("triangleFields");
+const polygonFields = document.getElementById("polygonFields");
+const shapeColor = document.getElementById("shapeColor");
+
 class ShapeRenderer {
     constructor(container) {
         this.container = container;
@@ -491,6 +503,105 @@ const renderer = new ShapeRenderer(shapeViewport);
 topOpenBtn.addEventListener("click", () => fileInput.click());
 leftOpenBtn.addEventListener("click", () => fileInput.click());
 saveAsBtn.addEventListener("click", () => saveShapeFile());
+
+// Add shapes
+addShapeBtn.addEventListener("click", () => shapeModal.style.display = "block");
+cancelShapeBtn.addEventListener("click", () => shapeModal.style.display = "none");
+
+// Change visible fields based on selected shape type
+shapeType.addEventListener("change", () => {
+    const selectedType = shapeType.value;
+
+    rectangleFields.style.display = "none";
+    triangleFields.style.display = "none";
+    polygonFields.style.display = "none";
+
+    if (selectedType === "Rectangle") {
+        rectangleFields.style.display = "block";
+    } else if (selectedType === "Triangle") {
+        triangleFields.style.display = "block";
+    } else if (selectedType === "Polygon") {
+        polygonFields.style.display = "block";
+    }
+});
+
+// Handle form submission
+shapeForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    // Get common shape properties
+    const type = shapeType.value;
+    const x = parseInt(document.getElementById("shapeX").value);
+    const y = parseInt(document.getElementById("shapeY").value);
+    const zIndex = parseInt(document.getElementById("shapeZIndex").value);
+    const color = document.getElementById("shapeColor").value;
+
+    let newShape;
+
+    // Create shape object based on type
+    if (type === "Rectangle") {
+        const width = parseInt(document.getElementById("rectWidth").value);
+        const height = parseInt(document.getElementById("rectHeight").value);
+
+        newShape = {
+            type,
+            x,
+            y,
+            zIndex,
+            width,
+            height,
+            color
+        };
+    } else if (type === "Triangle") {
+        const size = parseInt(document.getElementById("triangleSize").value);
+
+        newShape = {
+            type,
+            x,
+            y,
+            zIndex,
+            size,
+            color
+        };
+    } else if (type === "Polygon") {
+        const pointsString = document.getElementById("polygonPoints").value;
+
+        // Parse points from format "x1:y1|x2:y2|x3:y3"
+        try {
+            const pointPairs = pointsString.split("|");
+            if (pointPairs.length < 3) {
+                alert("A polygon must have at least 3 points.");
+                return;
+            }
+
+            const points = pointPairs.map(pair => {
+                const [pointX, pointY] = pair.split(":").map(coord => parseInt(coord));
+                if (isNaN(pointX) || isNaN(pointY)) {
+                    throw new Error("Invalid point format");
+                }
+                return { x: pointX, y: pointY };
+            });
+
+            newShape = {
+                type,
+                x,
+                y,
+                zIndex,
+                points,
+                color
+            };
+        } catch (error) {
+            alert("Invalid polygon points format. Use x1:y1|x2:y2|x3:y3");
+            return;
+        }
+    }
+
+    renderer.addShape(newShape);
+    renderer.render();
+    shapeModal.style.display = "none";
+
+});
+
 
 fileInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
