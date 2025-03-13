@@ -3,6 +3,7 @@ const shapeViewport = document.getElementById("shapeViewport");
 const topOpenBtn = document.getElementById("topOpenBtn");
 const leftOpenBtn = document.getElementById("leftOpenBtn");
 const fileInput = document.getElementById("fileInput");
+const saveAsBtn = document.getElementById("saveAsBtn");
 
 class ShapeRenderer {
     constructor(container) {
@@ -426,12 +427,70 @@ function openShapeFile(file) {
     reader.readAsText(file);
 }
 
+
+// Function to convert in memory shape to text file (.shapefile)
+function shapesToFileContent(shapes) {
+    let content = '';
+
+    shapes.forEach(shape => {
+        if (shape.type === "Rectangle") {
+            content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${shape.width}, ${shape.height}, ${shape.color};\n`;
+        } else if (shape.type === "Triangle") {
+            content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${shape.size}, ${shape.color};\n`;
+        } else if (shape.type === "Polygon") {
+            // Convert points array to the format: "x1:y1|x2:y2|x3:y3|..."
+            const pointsString = shape.points.map(p => `${p.x}:${p.y}`).join('|');
+            content += `${shape.type}, ${shape.x}, ${shape.y}, ${shape.zIndex}, ${pointsString}, ${shape.color};\n`;
+        }
+    });
+
+    return content;
+}
+
+// save/download action
+function saveShapeFile() {
+    // Get shapes from renderer
+    const shapes = renderer.shapes;
+
+    // If no shapes to save, alert the user
+    if (shapes.length === 0) {
+        alert("No shapes to save. Please open a shape file first.");
+        return;
+    }
+
+    // Convert shapes to file content
+    const content = shapesToFileContent(shapes);
+
+    // Prompt user for filename
+    const filename = prompt("Enter filename (without extension):", "shapes");
+
+    // If user cancels, do nothing
+    if (!filename) return;
+
+    // Create a blob with the content
+    const blob = new Blob([content], { type: 'text/plain' });
+
+    // Create a download link
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.shapefile`;
+
+    // Append to body, click, and remove
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Clean up the URL object
+    URL.revokeObjectURL(a.href);
+}
+
 // Initialize Shape Renderer
 const renderer = new ShapeRenderer(shapeViewport);
 
 // Event listeners
 topOpenBtn.addEventListener("click", () => fileInput.click());
 leftOpenBtn.addEventListener("click", () => fileInput.click());
+saveAsBtn.addEventListener("click", () => saveShapeFile());
 
 fileInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
